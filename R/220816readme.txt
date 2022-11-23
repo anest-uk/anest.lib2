@@ -1,0 +1,4 @@
+lib2 is from pkg aappd aka pkgx, it is the R/lib.R library
+on 220826 found dezoint2 missing in SLOW run
+this located in R/step.R library
+therefore entire step library copied and added to NAMESPACE despite being a bit large
