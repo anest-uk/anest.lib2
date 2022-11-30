@@ -5352,3 +5352,18 @@ regpcodeL <- function( #a 'cached' version of regpcodeP using lookup table
   stopifnot(nrow(x5)==length(x)&&all.equal(x,x5[,pc]))
   x5[,rc]
 }
+
+
+#' @export
+hkeymd5 <- #constructor for hashkey from date,nx,rc6; for re-use
+  function(date=.BY[[1]],nx=.BY[[2]],rc6) {
+    openssl::md5( 
+      paste0(
+        date,
+        '.',
+        zeroprepend(nx,2),
+        '.',
+        paste0(sort(rc6), collapse='')
+      )
+    )
+  }
