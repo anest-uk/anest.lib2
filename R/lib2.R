@@ -23,18 +23,24 @@ chkpcode <- function(pc='EC2R 8AH') {
   TRUE
 }
 
-#wrapper around ppc to vectorise it properly
 #' @export
-parsepcode <- function(pc) {
-  x <- suppressWarnings(lapply(data.frame(Reduce(rbind,lapply(lapply(lapply(pc,ppc),data.table),t))),unlist))
-  x <- lapply(x,`names<-`,NULL)
-  names(x) <- names(ppc(pc[1]))
-  x
-}
+parsepcode <- #parse a vector of 'irregular' (normal) postcode
+  function(pc=c('AL1 1AD','AL1 1BD','AL1 1CD')) {
+    x <- lapply(pc,ppc)%>%
+      lapply(.,data.table)%>%
+      lapply(.,t)%>%
+      Reduce(rbind,.)%>%
+      data.frame(.)%>%
+      lapply(.,unlist)%>%
+      suppressWarnings(.)
+    x <- lapply(x,`names<-`,NULL)
+    names(x) <- names(ppc(pc[1]))
+    x
+  }
 
-#was parsepcode
 #' @export
-ppc <- function(pc='EC2R 8AH') {
+ppc <-  #parse a single 'irregular' (normal) postcode
+  function(pc='EC2R 8AH') {
   if(nchar(pc)<2) return(list(area=ifelse(grepl('[A-Z,a-z]',pc),paste0(toupper(pc),'--'),''),district='',sector='',unit=''))
   chkpcode(pc)
   pc <- toupper(pc)
@@ -72,10 +78,11 @@ subdollar <- function(x) {
 }
 
 #' @export
-regpcode <- function(rawcode='W1U 4RL',x=parsepcode(rawcode)) {
-  rawcode <- gsub(patt='  ',rep=' ',rawcode)
-  Reduce(paste0,lapply(x,pad1))
-}
+regpcode <- #parse 'irregular' (normal) postcode to 'regular' 12-character
+  function(rawcode=c('AL1 1AD','AL1 1BD','AL1 1CD'),x=parsepcode(rawcode)) {
+    rawcode <- gsub(patt='  ',rep=' ',rawcode)
+    Reduce(paste0,lapply(x,pad1))
+  }
 
 #' @export
 pad1 <- function(x) {
@@ -94,7 +101,7 @@ strips <- function(x) {
 irregpcode <- function(x) {
   x1 <- substr(x,1,pmin(6,nchar(x)))
   x2 <- substr(x,pmin(7,nchar(x)),nchar(x))
-  gsub(patt=' $',rep='',x=paste(gsub(patt=escrcs(),rep='',x=x1),gsub(patt=escrcs(),rep='',x=x2)))
+  gsub(patt=' $',rep='',x=paste(gsub(patt='\\-',rep='',x=x1),gsub(patt='\\-',rep='',x=x2)))
 }
 
 #' @export
@@ -2620,7 +2627,6 @@ cptc <- function(
 
 #' @export
 cocomkd <- function(type='coco') {
-  #shell('rmdir coco')
   shell(paste0("rd /s /q .\\",type),intern=T)
   mkdirn(type)
 }
@@ -5291,7 +5297,7 @@ dep0a <- function(
 
 #' @export
 regpcodeP <- function(x,parallelx=T) {
-  x0 <- min(ncpus(),length(x)/5000)
+  x0 <- min(ncpus(),ceiling(length(x)/5000))
   sfInit(parallel=parallelx,cpu=x0)
   x1 <- unlist(sfLapplyWrap(as.list(x),FUN=regpcode))
   sfStop()
@@ -5367,3 +5373,9 @@ hkeymd5 <- #constructor for hashkey from date,nx,rc6; for re-use
       )
     )
   }
+
+
+#' @export
+cenv0 <- function(x){
+  min(x)+diff(range(x))/2
+}
