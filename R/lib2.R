@@ -1,31 +1,28 @@
 #' @export
-chkpcode <- function(pc='EC2R 8AH') {
-  #composed of correct chars
-  #grepl(patt='[^a-zA-Z0-9]/',x=pc,perl=TRUE)
-  #right length
+chkpcode <- 
+  function(
+    pc='EC2R 8AH'
+    ) {
   nch <- sapply(pc,nchar)
-  stopifnot(all(nch<=8))
-  #max one space
-  stopifnot(unlist(lapply(gregexpr(patt=' ',pc),length))==1)
-  #is either 1-part or 2-part
+  stopifnot(all(nch<=8)) #right length
+  stopifnot(unlist(lapply(gregexpr(patt=' ',pc),length))==1)#max one space
   x <- strsplit(pc,split=' ')
-  #stopifnot(all(lapply(x,length)==1)||all(lapply(x,length)==2))
-  #1-part always starts with alpha cap
   if(length(x[[1]])==1) {
-    stopifnot(all(unlist(gregexpr(pc,patt='^[A-Z,a-z]'))==1))
+    stopifnot(all(unlist(gregexpr(pc,patt='^[A-Z,a-z]'))==1))#1-part always starts with alpha cap
   }
-  #2-part always starts with number
   if(length(x[[1]])==2) {
     pcin <- lapply(x,'[[',2)
-    if(!all(unlist(gregexpr(pcin,patt='^[0-9]'))==1)) browser()
+    if(!all(unlist(gregexpr(pcin,patt='^[0-9]'))==1)) stop('postcode malformed')#2-part always starts with number [never fails]
     stopifnot(all(unlist(gregexpr(pcin,patt='^[0-9]'))==1))
   }
   TRUE
 }
 
 #' @export
-parsepcode <- #parse a vector of 'irregular' (normal) postcode
-  function(pc=c('AL1 1AD','AL1 1BD','AL1 1CD')) {
+parsepcode <-
+  function( #parse a vector of 'irregular' (normal) postcode
+    pc=c('AL1 1AD','AL1 1BD','AL1 1CD')
+    ) {
     x <- lapply(pc,ppc)%>%
       lapply(.,data.table)%>%
       lapply(.,t)%>%
@@ -78,8 +75,9 @@ subdollar <- function(x) {
 }
 
 #' @export
-regpcode <- #parse 'irregular' (normal) postcode to 'regular' 12-character
-  function(rawcode=c('AL1 1AD','AL1 1BD','AL1 1CD'),x=parsepcode(rawcode)) {
+regpcode <- 
+  function(#parse irregular postcode to regular 12-char (area,district,sector,unit)
+    rawcode=c('AL1 1AD','AL1 1BD','AL1 1CD'),x=parsepcode(rawcode)) {
     rawcode <- gsub(patt='  ',rep=' ',rawcode)
     Reduce(paste0,lapply(x,pad1))
   }
@@ -98,7 +96,10 @@ strips <- function(x) {
 }
 
 #' @export
-irregpcode <- function(x) {
+irregpcode <- 
+  function( #convert regular (area,district,sector,unit) 12 char to 'normal' postcode
+    x
+    ) {
   x1 <- substr(x,1,pmin(6,nchar(x)))
   x2 <- substr(x,pmin(7,nchar(x)),nchar(x))
   gsub(patt=' $',rep='',x=paste(gsub(patt='\\-',rep='',x=x1),gsub(patt='\\-',rep='',x=x2)))
@@ -2626,7 +2627,10 @@ cptc <- function(
 }
 
 #' @export
-cocomkd <- function(type='coco') {
+cocomkd <- 
+  function(#make subdir for csv(postcode) WINDOWS
+    type='coco'
+    ) {
   shell(paste0("rd /s /q .\\",type),intern=T)
   mkdirn(type)
 }
